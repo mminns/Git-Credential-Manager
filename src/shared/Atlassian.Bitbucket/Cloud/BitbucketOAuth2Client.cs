@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
 using Microsoft.Git.CredentialManager.Authentication.OAuth.Json;
 using Newtonsoft.Json;
 
-namespace Atlassian.Bitbucket
+namespace Atlassian.Bitbucket.Cloud
 {
-    public class BitbucketOAuth2Client : OAuth2Client
+    public class BitbucketOAuth2Client : AbstractBitbucketOAuth2Client
     {
         private static readonly OAuth2ServerEndpoints Endpoints = new OAuth2ServerEndpoints(
             BitbucketConstants.OAuth2AuthorizationEndpoint,
@@ -63,6 +64,11 @@ namespace Atlassian.Bitbucket
             return BitbucketConstants.OAuth2ClientSecret;
         }
 
+        public override IEnumerable<string> Scopes => new string[] {
+            BitbucketConstants.OAuthScopes.RepositoryWrite,
+            BitbucketConstants.OAuthScopes.Account,
+        };
+
         protected override bool TryCreateTokenEndpointResult(string json, out OAuth2TokenResult result)
         {
             // We override the token endpoint response parsing because the Bitbucket authority returns
@@ -83,6 +89,17 @@ namespace Atlassian.Bitbucket
             // Bitbucket uses "scopes" for the scopes property name rather than the standard "scope" name
             [JsonProperty("scopes")]
             public override string Scope { get; set; }
+        }
+
+        public override string GetRefreshTokenServiceName(InputArguments input)
+        {
+            Uri baseUri = input.GetRemoteUri(includeUser: false);
+
+            // The refresh token key never includes the path component.
+            // Instead we use the path component to specify this is the "refresh_token".
+            Uri uri = new UriBuilder(baseUri) { Path = "/refresh_token" }.Uri;
+
+            return uri.AbsoluteUri.TrimEnd('/');
         }
     }
 }

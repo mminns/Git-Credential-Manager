@@ -19,6 +19,11 @@ namespace Atlassian.Bitbucket
         public const string OAuth2ClientSecret = "wwWw47VB9ZHwMsD4Q4rAveHkbxNrMp3n";
         public static readonly Uri OAuth2RedirectUri = new Uri("http://localhost:34106/");
 
+        public const string XOAuth2ClientId = "27515f322fc50d81043e62eedc621c57";
+        public const string XOAuth2ClientSecret = "e1f35e06bc4edd28faf75c753502964fe3c9336dc3e20968da2ce553fa828203";
+        public static readonly Uri XOAuth2RedirectUri = new Uri("http://localhost:34106/");
+
+
         public static readonly Uri OAuth2AuthorizationEndpoint = new Uri("https://bitbucket.org/site/oauth2/authorize");
         public static readonly Uri OAuth2TokenEndpoint = new Uri("https://bitbucket.org/site/oauth2/access_token");
 
@@ -26,6 +31,13 @@ namespace Atlassian.Bitbucket
         {
             public const string RepositoryWrite = "repository:write";
             public const string Account = "account";
+        }
+
+        public static class XOAuthScopes
+        {
+            public const string PublicRepos = "PUBLIC_REPOS";
+            public const string RepoWrite = "REPO_WRITE";
+            public const string RepoRead = "REPO_READ";
         }
 
         public static class EnvironmentVariables
@@ -50,13 +62,8 @@ namespace Atlassian.Bitbucket
         }
 
         /// <summary>
-        /// Supported authentication modes for Bitbucket.org
+        /// Supported authentication modes for Bitbucket.org/Bitbucket Server/DC
         /// </summary>
-        public const AuthenticationModes DotOrgAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth; //| AuthenticationModes.Pat;
-
-        /// <summary>
-        /// Supported authentication modes for Bitbucket Server/DC
-        /// </summary>
-        public const AuthenticationModes ServerAuthenticationModes = AuthenticationModes.Basic;
+        public const AuthenticationModes SupportedAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
     }
 }

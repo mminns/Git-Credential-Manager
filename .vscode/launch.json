@@ -13,6 +13,9 @@
             "program": "${workspaceFolder}/out/shared/Git-Credential-Manager/bin/Debug/net5.0/git-credential-manager-core.dll",
             "args": ["get"],
             "cwd": "${workspaceFolder}/out/shared/Git-Credential-Manager",
+            "env":{
+                "GIT_SSL_NO_VERIFY": "1"
+            },
             "console": "integratedTerminal",
             "stopAtEntry": false,
         },

@@ -5,32 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Newtonsoft.Json;
 
-namespace Atlassian.Bitbucket
+namespace Atlassian.Bitbucket.DataCenter
 {
-    public interface IBitbucketRestApi : IDisposable
-    {
-        Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken);
-    }
-
-    public class RestApiResult<T>
-    {
-        public RestApiResult(HttpStatusCode statusCode)
-            : this(statusCode, default(T)) { }
-
-        public RestApiResult(HttpStatusCode statusCode, T response)
-        {
-            StatusCode = statusCode;
-            Response = response;
-        }
-
-        public HttpStatusCode StatusCode { get; }
-
-        public T Response { get; }
-
-        public bool Succeeded => 199 < (int) StatusCode && (int) StatusCode < 300;
-    }
-
-    public class UserInfo
+    public class UserInfo : IUserInfo
     {
         [JsonProperty("has_2fa_enabled")]
         public bool IsTwoFactorAuthenticationEnabled { get; set; }
@@ -55,11 +32,17 @@ namespace Atlassian.Bitbucket
             EnsureArgument.NotNull(context, nameof(context));
 
             _context = context;
+            _apiUri = _context.Settings.RemoteUri;
         }
 
-        public async Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
+        public async Task<RestApiResult<IUserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
         {
-            var requestUri = new Uri(_apiUri, "2.0/user");
+            // TODO SHPLII-74 HACKY
+            // No REST API in BBS that can be used to return just my user account based on my login AFAIK.
+            return await Task.Run(() => new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = "   " }));
+
+            /*
+            var requestUri = new Uri(_apiUri.AbsoluteUri + "rest/api/1.0/users?filter=" + userName);
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
                 if (isBearerToken)
@@ -82,12 +65,13 @@ namespace Atlassian.Bitbucket
                     {
                         var obj = JsonConvert.DeserializeObject<UserInfo>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-                        return new RestApiResult<UserInfo>(response.StatusCode, obj);
+                        return new RestApiResult<IUserInfo>(response.StatusCode, obj);
                     }
 
-                    return new RestApiResult<UserInfo>(response.StatusCode);
+                    return new RestApiResult<IUserInfo>(response.StatusCode);
                 }
             }
+            */
         }
 
         private HttpClient _httpClient;

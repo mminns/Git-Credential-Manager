@@ -16,6 +16,7 @@ namespace Atlassian.Bitbucket.Tests
         private const string MOCK_REFRESH_TOKEN = "rt-1234567809";
         private Mock<IBitbucketAuthentication> bitbucketAuthentication = new Mock<IBitbucketAuthentication>(MockBehavior.Strict);
         private Mock<IBitbucketRestApi> bitbucketApi = new Mock<IBitbucketRestApi>(MockBehavior.Strict);
+        private Mock<IRegistry<IBitbucketRestApi>> bitbucketRestApiRegistry = new Mock<IRegistry<IBitbucketRestApi>>(MockBehavior.Strict);
 
         [Theory]
         // We report that we support unencrypted HTTP here so that we can fail and
@@ -93,9 +94,9 @@ namespace Atlassian.Bitbucket.Tests
                 MockUserDidNotEnteredBasicCredentials(bitbucketAuthentication);
             }
 
-            MockValidRemoteAccount(bitbucketApi, input, password, false);
+            MockValidRemoteAccount(bitbucketRestApiRegistry, bitbucketApi, input, password, false);
 
-            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
+            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketRestApiRegistry.Object);
 
             if (userEntersCredentials.HasValue && !userEntersCredentials.Value)
             {
@@ -136,10 +137,10 @@ namespace Atlassian.Bitbucket.Tests
                 MockUserDidNotEnteredBasicCredentials(bitbucketAuthentication);
             }
 
-            MockValidRemoteAccount(bitbucketApi, input, password, true);
-            MockRemoteValidRefreshToken();
+            MockValidRemoteAccount(bitbucketRestApiRegistry, bitbucketApi, input, password, true);
+            MockRemoteValidRefreshToken(input);
 
-            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
+            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketRestApiRegistry.Object);
 
             if (userEntersCredentials.HasValue && !userEntersCredentials.Value)
             {
@@ -175,10 +176,10 @@ namespace Atlassian.Bitbucket.Tests
             }
 
             MockUserEnteredBasicCredentials(bitbucketAuthentication, input, password);
-            MockValidRemoteAccount(bitbucketApi, input, password, true);
-            MockRemoteValidRefreshToken();
+            MockValidRemoteAccount(bitbucketRestApiRegistry, bitbucketApi, input, password, true);
+            MockRemoteValidRefreshToken(input);
 
-            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
+            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketRestApiRegistry.Object);
 
             var credential = provider.GetCredentialAsync(input);
 
@@ -207,12 +208,9 @@ namespace Atlassian.Bitbucket.Tests
         // cloud - supports Basic, OAuth
         [InlineData("https://bitbucket.org", "oauth", AuthenticationModes.OAuth)]
         [InlineData("https://bitbucket.org", "basic", AuthenticationModes.Basic)]
-        [InlineData("https://bitbucket.org", "NOT-A-REAL-VALUE", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://Bitbucket.org", "NOT-A-REAL-VALUE", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://bitbucket.org", "none", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://Bitbucket.org", "none", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://bitbucket.org", null, BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://Bitbucket.org", null, BitbucketConstants.DotOrgAuthenticationModes)]
+        [InlineData("https://bitbucket.org", "NOT-A-REAL-VALUE", BitbucketConstants.SupportedAuthenticationModes)]
+        [InlineData("https://bitbucket.org", "none", BitbucketConstants.SupportedAuthenticationModes)]
+        [InlineData("https://bitbucket.org", null, BitbucketConstants.SupportedAuthenticationModes)]
         public async Task BitbucketHostProvider_GetSupportedAuthenticationModes(string uriString, string bitbucketAuthModes, AuthenticationModes expectedModes)
         {
             var targetUri = new Uri(uriString);
@@ -222,7 +220,7 @@ namespace Atlassian.Bitbucket.Tests
                 context.Environment.Variables.Add(BitbucketConstants.EnvironmentVariables.AuthenticationModes, bitbucketAuthModes);
 
 
-            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
+            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketRestApiRegistry.Object);
 
             AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
 
@@ -295,7 +293,7 @@ namespace Atlassian.Bitbucket.Tests
             if (storedAccount)
             {
                 // use refresh token to get new access token and refresh token
-                bitbucketAuthentication.Verify(m => m.RefreshOAuthCredentialsAsync(MOCK_REFRESH_TOKEN), Times.Once);
+                bitbucketAuthentication.Verify(m => m.RefreshOAuthCredentialsAsync(input, MOCK_REFRESH_TOKEN), Times.Once);
 
                 // check access token works
                 bitbucketApi.Verify(m => m.GetUserInformationAsync(null, MOCK_ACCESS_TOKEN, true), Times.Once);
@@ -326,7 +324,7 @@ namespace Atlassian.Bitbucket.Tests
             bitbucketAuthentication.Verify(m => m.ShowOAuthRequiredPromptAsync(), Times.Never);
 
             // Never try to refresh Access Token
-            bitbucketAuthentication.Verify(m => m.RefreshOAuthCredentialsAsync(It.IsAny<string>()), Times.Never);
+            bitbucketAuthentication.Verify(m => m.RefreshOAuthCredentialsAsync(It.IsAny<InputArguments>(), It.IsAny<string>()), Times.Never);
 
             // never check access token works
             bitbucketApi.Verify(m => m.GetUserInformationAsync(null, MOCK_ACCESS_TOKEN, true), Times.Never);
@@ -340,16 +338,16 @@ namespace Atlassian.Bitbucket.Tests
             context.CredentialStore.Add("https://bitbucket.org", new TestCredential(input.Host, input.UserName, MOCK_ACCESS_TOKEN));
         }
 
-        private void MockRemoteValidRefreshToken()
+        private void MockRemoteValidRefreshToken(InputArguments input)
         {
-            bitbucketAuthentication.Setup(m => m.RefreshOAuthCredentialsAsync(MOCK_REFRESH_TOKEN)).ReturnsAsync(new OAuth2TokenResult(MOCK_ACCESS_TOKEN, "access_token"));
+            bitbucketAuthentication.Setup(m => m.RefreshOAuthCredentialsAsync(input, MOCK_REFRESH_TOKEN)).ReturnsAsync(new OAuth2TokenResult(MOCK_ACCESS_TOKEN, "access_token"));
         }
 
         private static void MockInvalidRemoteBasicAccount(Mock<IBitbucketRestApi> bitbucketApi, Mock<IBitbucketAuthentication> bitbucketAuthentication)
         {
             bitbucketAuthentication.Setup(m => m.GetBasicCredentialsAsync(It.IsAny<Uri>(), It.IsAny<String>())).ReturnsAsync((TestCredential)null);
 
-            bitbucketApi.Setup(x => x.GetUserInformationAsync(It.IsAny<String>(), It.IsAny<String>(), false)).ReturnsAsync(new RestApiResult<UserInfo>(System.Net.HttpStatusCode.Unauthorized));
+            bitbucketApi.Setup(x => x.GetUserInformationAsync(It.IsAny<String>(), It.IsAny<String>(), false)).ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.Unauthorized));
 
         }
         private static void MockUserEnteredBasicCredentials(Mock<IBitbucketAuthentication> bitbucketAuthentication, InputArguments input, string password)
@@ -363,10 +361,11 @@ namespace Atlassian.Bitbucket.Tests
             bitbucketAuthentication.Setup(m => m.GetBasicCredentialsAsync(It.IsAny<Uri>(), It.IsAny<String>())).ReturnsAsync((TestCredential)null);
         }
 
-        private static void MockValidRemoteAccount(Mock<IBitbucketRestApi> bitbucketApi, InputArguments input, string password, bool twoFAEnabled)
+        private static void MockValidRemoteAccount(Mock<IRegistry<IBitbucketRestApi>> bitbucketRestApiRegistry, Mock<IBitbucketRestApi> bitbucketApi, InputArguments input, string password, bool twoFAEnabled)
         {
-            var userInfo = new UserInfo() { IsTwoFactorAuthenticationEnabled = twoFAEnabled };
-            bitbucketApi.Setup(x => x.GetUserInformationAsync(input.UserName, password, false)).ReturnsAsync(new RestApiResult<UserInfo>(System.Net.HttpStatusCode.OK, userInfo));
+            var userInfo = new Cloud.UserInfo() { IsTwoFactorAuthenticationEnabled = twoFAEnabled };
+            bitbucketApi.Setup(x => x.GetUserInformationAsync(input.UserName, password, false)).ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.OK, userInfo));
+            bitbucketRestApiRegistry.Setup(x => x.Get(input)).Returns(bitbucketApi.Object);
         }
 
         private static void MockStoredBasicAccount(TestCommandContext context, InputArguments input, string password)
@@ -378,8 +377,8 @@ namespace Atlassian.Bitbucket.Tests
 
         private static void MockValidStoredOAuthUser(TestCommandContext context, Mock<IBitbucketRestApi> bitbucketApi)
         {
-            var userInfo = new UserInfo() { IsTwoFactorAuthenticationEnabled = false };
-            bitbucketApi.Setup(x => x.GetUserInformationAsync("jsquire", "password1", false)).ReturnsAsync(new RestApiResult<UserInfo>(System.Net.HttpStatusCode.OK, userInfo));
+            var userInfo = new Cloud.UserInfo() { IsTwoFactorAuthenticationEnabled = false };
+            bitbucketApi.Setup(x => x.GetUserInformationAsync("jsquire", "password1", false)).ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.OK, userInfo));
             context.CredentialStore.Add("https://bitbucket.org", new TestCredential("https://bitbucket.org", "jsquire", "password1"));
         }
     }

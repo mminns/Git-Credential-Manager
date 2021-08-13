@@ -102,7 +102,7 @@ namespace Microsoft.Git.CredentialManager
             // Unfold the host by sub-domain, left-to-right
             while (!string.IsNullOrWhiteSpace(host))
             {
-                if (host.Contains(".")) // Do not emit just the TLD
+                if (host.Contains(".") || host.Equals("localhost")) // Do not emit just the TLD
                 {
                     yield return $"{schemeAndDelim}{host}";
                 }

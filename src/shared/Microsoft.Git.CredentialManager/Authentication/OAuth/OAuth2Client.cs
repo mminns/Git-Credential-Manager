@@ -62,11 +62,11 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
 
     public class OAuth2Client : IOAuth2Client
     {
-        private readonly HttpClient _httpClient;
-        private readonly OAuth2ServerEndpoints _endpoints;
-        private readonly Uri _redirectUri;
-        private readonly string _clientId;
-        private readonly string _clientSecret;
+        protected readonly HttpClient _httpClient;
+        protected readonly OAuth2ServerEndpoints _endpoints;
+        protected readonly Uri _redirectUri;
+        protected readonly string _clientId;
+        protected readonly string _clientSecret;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
@@ -183,7 +183,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             }
         }
 
-        public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
+        public virtual async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
             var formData = new Dictionary<string, string>
             {
@@ -218,7 +218,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             }
         }
 
-        public async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
+        public virtual async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
         {
             var formData = new Dictionary<string, string>
             {
@@ -334,7 +334,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
 
         #region Helpers
 
-        private HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null, bool addAuthHeader = false)
+        protected HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null, bool addAuthHeader = false)
         {
             var request = new HttpRequestMessage(method, requestUri) {Content = content};
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
@@ -347,7 +347,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             return request;
         }
 
-        private Exception CreateExceptionFromResponse(string json)
+        protected Exception CreateExceptionFromResponse(string json)
         {
             if (TryCreateExceptionFromResponse(json, out OAuth2Exception exception))
             {
