@@ -14,9 +14,9 @@ namespace Atlassian.Bitbucket.DataCenter
 {
     public class BitbucketOAuth2Client : AbstractBitbucketOAuth2Client
     {
-        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings)
+        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings, ITrace trace)
             : base(httpClient, GetEndpoints(settings),
-                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings))
+                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings), trace)
         {
         }
 
@@ -31,7 +31,10 @@ namespace Atlassian.Bitbucket.DataCenter
         private static string GetBaseUri(ISettings settings)
         {
             // TODO SHPLII-74 HACKY
-            return $"{settings.RemoteUri.Scheme}://{settings.RemoteUri.Host}:{settings.RemoteUri.Port}/bitbucket";
+            var pathParts = settings.RemoteUri.PathAndQuery.Split('/');
+            var pathPart = settings.RemoteUri.PathAndQuery.StartsWith("/") ? pathParts[1] : pathParts[0];
+            var path = !string.IsNullOrWhiteSpace(pathPart) ? "/" + pathPart : null;
+            return $"{settings.RemoteUri.Scheme}://{settings.RemoteUri.Host}:{settings.RemoteUri.Port}{path}";
         }
 
         private static string GetClientId(ISettings settings)
@@ -135,6 +138,9 @@ namespace Atlassian.Bitbucket.DataCenter
             {
                 formData[OAuth2Constants.TokenEndpoint.PkceVerifierParameter] = authorizationCodeResult.CodeVerifier;
             }
+
+            _trace.WriteLine($"FormData: ");
+            _trace.WriteDictionary(formData);
 
             using (HttpContent requestContent = new FormUrlEncodedContent(formData))
             using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent, false))

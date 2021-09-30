@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
@@ -65,6 +67,17 @@ namespace Atlassian.Bitbucket.Cloud
                     return new RestApiResult<IUserInfo>(response.StatusCode);
                 }
             }
+        }
+
+        public async Task<bool> IsOAuthInstalledAsync()
+        {
+            return await Task.FromResult(true);
+        }
+
+        public async Task<List<AuthenticationMethod>> GetAuthenticationMethodsAsync()
+        {
+            // HACK NEVER USED
+            return await Task.FromResult(new List<AuthenticationMethod>());
         }
 
         private HttpClient _httpClient;

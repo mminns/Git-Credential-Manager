@@ -37,6 +37,9 @@ namespace Microsoft.Git.CredentialManager.Commands
             output["username"] = credential.Account;
             output["password"] = credential.Password;
 
+            Context.Trace.WriteLine("Get response:");
+            Context.Trace.WriteDictionary(output);
+
             // Write the values to standard out
             Context.Streams.Out.WriteDictionary(output);
         }

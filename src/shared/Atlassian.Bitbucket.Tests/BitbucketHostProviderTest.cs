@@ -214,6 +214,7 @@ namespace Atlassian.Bitbucket.Tests
         public async Task BitbucketHostProvider_GetSupportedAuthenticationModes(string uriString, string bitbucketAuthModes, AuthenticationModes expectedModes)
         {
             var targetUri = new Uri(uriString);
+            var input = MockInput(targetUri.Scheme, targetUri.Host, null);
 
             var context = new TestCommandContext { };
             if (bitbucketAuthModes != null)
@@ -222,7 +223,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketRestApiRegistry.Object);
 
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
+            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(input);
 
             Assert.Equal(expectedModes, actualModes);
         }

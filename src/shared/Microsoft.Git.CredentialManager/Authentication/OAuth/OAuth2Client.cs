@@ -67,16 +67,18 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
         protected readonly Uri _redirectUri;
         protected readonly string _clientId;
         protected readonly string _clientSecret;
+        protected readonly ITrace _trace;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
-        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null)
+        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null, ITrace trace = null)
         {
             _httpClient = httpClient;
             _endpoints = endpoints;
             _clientId = clientId;
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
+            _trace = trace;
         }
 
         public IOAuth2CodeGenerator CodeGenerator
@@ -104,6 +106,10 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 [OAuth2Constants.AuthorizationEndpoint.PkceChallengeParameter] = codeChallenge
             };
 
+            _trace?.WriteLine($"codeVerifier: {codeVerifier}");
+            _trace?.WriteLine($"QueryParams: ");
+            _trace?.WriteDictionary(queryParams);
+
             Uri redirectUri = null;
             if (_redirectUri != null)
             {
@@ -123,6 +129,8 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             };
 
             Uri authorizationUri = authorizationUriBuilder.Uri;
+
+            _trace?.WriteLine($"authorizationUri: {authorizationUri}");
 
             // Open the browser at the request URI to start the authorization code grant flow.
             Uri finalUri = await browser.GetAuthenticationCodeAsync(authorizationUri, redirectUri, ct);

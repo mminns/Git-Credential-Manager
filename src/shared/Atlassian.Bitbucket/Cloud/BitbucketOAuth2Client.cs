@@ -16,9 +16,9 @@ namespace Atlassian.Bitbucket.Cloud
             BitbucketConstants.OAuth2AuthorizationEndpoint,
             BitbucketConstants.OAuth2TokenEndpoint);
 
-        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings)
+        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings, ITrace trace)
             : base(httpClient, Endpoints,
-                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings))
+                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings), trace)
         {
         }
 

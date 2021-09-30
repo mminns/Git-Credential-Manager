@@ -19,8 +19,8 @@ namespace Atlassian.Bitbucket
         public const string OAuth2ClientSecret = "wwWw47VB9ZHwMsD4Q4rAveHkbxNrMp3n";
         public static readonly Uri OAuth2RedirectUri = new Uri("http://localhost:34106/");
 
-        public const string XOAuth2ClientId = "27515f322fc50d81043e62eedc621c57";
-        public const string XOAuth2ClientSecret = "e1f35e06bc4edd28faf75c753502964fe3c9336dc3e20968da2ce553fa828203";
+        public const string XOAuth2ClientId = "92ae854ce3cdffc55ce750844f971b80";
+        public const string XOAuth2ClientSecret = "aa52721197c29ec39f65b8e45312c6493991844c314f48c7cee32bcee50d1ccd";
         public static readonly Uri XOAuth2RedirectUri = new Uri("http://localhost:34106/");
 
 

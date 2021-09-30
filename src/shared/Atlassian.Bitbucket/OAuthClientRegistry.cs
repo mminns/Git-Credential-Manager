@@ -9,6 +9,7 @@ namespace Atlassian.Bitbucket
     {
         private readonly HttpClient http;
         private ISettings settings;
+        private readonly ITrace trace;
         private Cloud.BitbucketOAuth2Client cloudClient;
         private DataCenter.BitbucketOAuth2Client dataCenterClient;
 
@@ -16,6 +17,7 @@ namespace Atlassian.Bitbucket
         {
             this.http = context.HttpClientFactory.CreateClient();
             this.settings = context.Settings;
+            this.trace = context.Trace;
         }
 
         public AbstractBitbucketOAuth2Client Get(InputArguments input)
@@ -36,7 +38,7 @@ namespace Atlassian.Bitbucket
             dataCenterClient = null;
         }
 
-        private Cloud.BitbucketOAuth2Client CloudClient => cloudClient ??= new Cloud.BitbucketOAuth2Client(http, settings);
-        private DataCenter.BitbucketOAuth2Client DataCenterClient => dataCenterClient ??= new DataCenter.BitbucketOAuth2Client(http, settings);
+        private Cloud.BitbucketOAuth2Client CloudClient => cloudClient ??= new Cloud.BitbucketOAuth2Client(http, settings, trace);
+        private DataCenter.BitbucketOAuth2Client DataCenterClient => dataCenterClient ??= new DataCenter.BitbucketOAuth2Client(http, settings, trace);
     }
 }

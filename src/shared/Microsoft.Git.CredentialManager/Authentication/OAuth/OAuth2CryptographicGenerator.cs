@@ -91,12 +91,10 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                     //
                     using (var sha256 = SHA256.Create())
                     {
-                        return Base64UrlConvert.Encode(
-                            sha256.ComputeHash(
-                                Encoding.ASCII.GetBytes(codeVerifier)
-                            ),
-                            PkceIncludeBase64UrlPadding
-                        );
+                        var codeVerifierBytes = Encoding.ASCII.GetBytes(codeVerifier);
+                        var codeVerifierSha = sha256.ComputeHash(codeVerifierBytes);
+                        var encodedCodeVerifierSha = Base64UrlConvert.Encode(codeVerifierSha, PkceIncludeBase64UrlPadding);
+                        return encodedCodeVerifierSha;
                     }
 
                 default:
