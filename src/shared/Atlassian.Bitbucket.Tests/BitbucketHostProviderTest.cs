@@ -1,4 +1,6 @@
-﻿using Microsoft.Git.CredentialManager;
+﻿using Atlassian.Bitbucket.Client;
+using Atlassian.Bitbucket.Client.Cloud;
+using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
@@ -207,12 +209,12 @@ namespace Atlassian.Bitbucket.Tests
         // cloud - supports Basic, OAuth
         [InlineData("https://bitbucket.org", "oauth", AuthenticationModes.OAuth)]
         [InlineData("https://bitbucket.org", "basic", AuthenticationModes.Basic)]
-        [InlineData("https://bitbucket.org", "NOT-A-REAL-VALUE", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://Bitbucket.org", "NOT-A-REAL-VALUE", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://bitbucket.org", "none", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://Bitbucket.org", "none", BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://bitbucket.org", null, BitbucketConstants.DotOrgAuthenticationModes)]
-        [InlineData("https://Bitbucket.org", null, BitbucketConstants.DotOrgAuthenticationModes)]
+        [InlineData("https://bitbucket.org", "NOT-A-REAL-VALUE", CloudAuthenticationModes.SupportedAuthenticationModes)]
+        [InlineData("https://Bitbucket.org", "NOT-A-REAL-VALUE", CloudAuthenticationModes.SupportedAuthenticationModes)]
+        [InlineData("https://bitbucket.org", "none", CloudAuthenticationModes.SupportedAuthenticationModes)]
+        [InlineData("https://Bitbucket.org", "none", CloudAuthenticationModes.SupportedAuthenticationModes)]
+        [InlineData("https://bitbucket.org", null, CloudAuthenticationModes.SupportedAuthenticationModes)]
+        [InlineData("https://Bitbucket.org", null, CloudAuthenticationModes.SupportedAuthenticationModes)]
         public void BitbucketHostProvider_GetSupportedAuthenticationModes(string uriString, string bitbucketAuthModes, AuthenticationModes expectedModes)
         {
             var targetUri = new Uri(uriString);

@@ -5,7 +5,7 @@ using Microsoft.Git.CredentialManager.Authentication.OAuth;
 using Microsoft.Git.CredentialManager.Authentication.OAuth.Json;
 using Newtonsoft.Json;
 
-namespace Atlassian.Bitbucket
+namespace Atlassian.Bitbucket.Client.Cloud.OAuth2
 {
     public class BitbucketOAuth2Client : OAuth2Client
     {

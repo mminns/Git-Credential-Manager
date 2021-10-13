@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.Client;
+using Atlassian.Bitbucket.Client.Cloud;
+using Atlassian.Bitbucket.Client.DataCenter;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
 
@@ -225,7 +228,7 @@ namespace Atlassian.Bitbucket
             if(!IsBitbucketOrg(targetUri))
             {
                 // Bitbucket Server/DC should use Basic only
-                return BitbucketConstants.ServerAuthenticationModes;
+                return DataCenterAuthenticationModes.SupportedAuthenticationModes;
             }
 
             // Check for an explicit override for supported authentication modes
@@ -246,8 +249,8 @@ namespace Atlassian.Bitbucket
             }
 
             // Bitbucket.org should use Basic, OAuth or manual PAT based authentication only
-            _context.Trace.WriteLine($"{targetUri} is bitbucket.org - authentication schemes: '{BitbucketConstants.DotOrgAuthenticationModes}'");
-            return BitbucketConstants.DotOrgAuthenticationModes;
+            _context.Trace.WriteLine($"{targetUri} is bitbucket.org - authentication schemes: '{CloudAuthenticationModes.SupportedAuthenticationModes}'");
+            return CloudAuthenticationModes.SupportedAuthenticationModes;
 
         }
 

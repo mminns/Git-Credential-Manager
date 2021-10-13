@@ -2,7 +2,7 @@ using System;
 
 namespace Atlassian.Bitbucket
 {
-    public static class BitbucketConstants
+    public static partial class BitbucketConstants
     {
         public const string BitbucketBaseUrlHost = "bitbucket.org";
         public static readonly Uri BitbucketApiUri = new Uri("https://api.bitbucket.org");
@@ -19,12 +19,6 @@ namespace Atlassian.Bitbucket
 
         public static readonly Uri OAuth2AuthorizationEndpoint = new Uri("https://bitbucket.org/site/oauth2/authorize");
         public static readonly Uri OAuth2TokenEndpoint = new Uri("https://bitbucket.org/site/oauth2/access_token");
-
-        public static class OAuthScopes
-        {
-            public const string RepositoryWrite = "repository:write";
-            public const string Account = "account";
-        }
 
         public static class EnvironmentVariables
         {
@@ -46,15 +40,5 @@ namespace Atlassian.Bitbucket
                 public const string AuthenticationModes = "bitbucketAuthModes";
             }
         }
-
-        /// <summary>
-        /// Supported authentication modes for Bitbucket.org
-        /// </summary>
-        public const AuthenticationModes DotOrgAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
-
-        /// <summary>
-        /// Supported authentication modes for Bitbucket Server/DC
-        /// </summary>
-        public const AuthenticationModes ServerAuthenticationModes = AuthenticationModes.Basic;
     }
 }

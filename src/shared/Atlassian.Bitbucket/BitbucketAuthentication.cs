@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.Client.Cloud;
+using Atlassian.Bitbucket.Client.Cloud.OAuth2;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
@@ -35,10 +37,10 @@ namespace Atlassian.Bitbucket
             "bitbucket",
         };
 
-        private static readonly string[] Scopes =
+        private static readonly string[] GcmcRequiredScopes =
         {
-            BitbucketConstants.OAuthScopes.RepositoryWrite,
-            BitbucketConstants.OAuthScopes.Account,
+            OAuth2Scopes.RepositoryWrite,
+            OAuth2Scopes.Account,
         };
 
         public BitbucketAuthentication(ICommandContext context)
@@ -140,7 +142,7 @@ namespace Atlassian.Bitbucket
             };
 
             var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
-            var authCodeResult = await oauthClient.GetAuthorizationCodeAsync(Scopes, browser, CancellationToken.None);
+            var authCodeResult = await oauthClient.GetAuthorizationCodeAsync(GcmcRequiredScopes, browser, CancellationToken.None);
 
             return await oauthClient.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
         }

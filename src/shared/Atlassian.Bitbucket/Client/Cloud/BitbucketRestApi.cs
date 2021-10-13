@@ -1,49 +1,11 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Newtonsoft.Json;
 
-namespace Atlassian.Bitbucket
+namespace Atlassian.Bitbucket.Client.Cloud
 {
-    public interface IBitbucketRestApi : IDisposable
-    {
-        Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken);
-    }
-
-    public class RestApiResult<T>
-    {
-        public RestApiResult(HttpStatusCode statusCode)
-            : this(statusCode, default(T)) { }
-
-        public RestApiResult(HttpStatusCode statusCode, T response)
-        {
-            StatusCode = statusCode;
-            Response = response;
-        }
-
-        public HttpStatusCode StatusCode { get; }
-
-        public T Response { get; }
-
-        public bool Succeeded => 199 < (int) StatusCode && (int) StatusCode < 300;
-    }
-
-    public class UserInfo
-    {
-        [JsonProperty("has_2fa_enabled")]
-        public bool IsTwoFactorAuthenticationEnabled { get; set; }
-
-        [JsonProperty("username")]
-        public string UserName { get; set; }
-
-        [JsonProperty("account_id")]
-        public string AccountId { get; set; }
-
-        [JsonProperty("uuid")]
-        public Guid Uuid { get; set; }
-    }
 
     public class BitbucketRestApi : IBitbucketRestApi
     {
@@ -96,6 +58,11 @@ namespace Atlassian.Bitbucket
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        Task<RestApiResult<UserInfo>> IBitbucketRestApi.GetUserInformationAsync(string userName, string password, bool isBearerToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
