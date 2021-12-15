@@ -4,17 +4,19 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using Moq;
 using Xunit;
 
-namespace Atlassian.Bitbucket.Tests
+namespace Atlassian.Bitbucket.Tests.Cloud
 {
     public class BitbucketOAuth2ClientTest
     {
         private Mock<HttpClient> httpClient = new Mock<HttpClient>(MockBehavior.Strict);
         private Mock<ISettings> settings = new Mock<ISettings>(MockBehavior.Loose);
+        private Mock<Trace> trace = new Mock<Trace>(MockBehavior.Loose);
         private Mock<IOAuth2WebBrowser> browser = new Mock<IOAuth2WebBrowser>(MockBehavior.Strict);
         private Mock<IOAuth2CodeGenerator> codeGenerator = new Mock<IOAuth2CodeGenerator>(MockBehavior.Strict);
         private IEnumerable<string> scopes = new List<string>();
@@ -66,7 +68,7 @@ namespace Atlassian.Bitbucket.Tests
         [Fact]
         public async Task BitbucketOAuth2Client_GetDeviceCodeAsync()
         {
-            var client = new BitbucketOAuth2Client(httpClient.Object, settings.Object);
+            var client = new BitbucketOAuth2Client(httpClient.Object, settings.Object, trace.Object);
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.GetDeviceCodeAsync(scopes, ct));
         }
 
@@ -92,7 +94,7 @@ namespace Atlassian.Bitbucket.Tests
 
         private BitbucketOAuth2Client GetBitbucketOAuth2Client()
         {
-            var client = new BitbucketOAuth2Client(httpClient.Object, settings.Object);
+            var client = new BitbucketOAuth2Client(httpClient.Object, settings.Object, trace.Object);
             client.CodeGenerator = codeGenerator.Object;
             return client;
         }
@@ -106,10 +108,10 @@ namespace Atlassian.Bitbucket.Tests
 
         private void MockGetAuthenticationCodeAsync(Uri finalCallbackUri, string overrideClientId)
         {
-            var authorizationUri = new UriBuilder(BitbucketConstants.OAuth2AuthorizationEndpoint)
+            var authorizationUri = new UriBuilder(CloudConstants.OAuth2AuthorizationEndpoint)
             {
                 Query = "?response_type=code"
-             + "&client_id=" + (overrideClientId ?? BitbucketConstants.OAuth2ClientId)
+             + "&client_id=" + (overrideClientId ?? CloudConstants.OAuth2ClientId)
              + "&state=12345"
              + "&code_challenge_method=" + OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodS256
              + "&code_challenge=" + WebUtility.UrlEncode(pkceCodeChallenge).ToLower()

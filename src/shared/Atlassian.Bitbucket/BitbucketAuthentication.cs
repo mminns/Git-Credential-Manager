@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
@@ -24,8 +25,9 @@ namespace Atlassian.Bitbucket
     {
         Task<CredentialsPromptResult> GetCredentialsAsync(Uri targetUri, string userName, AuthenticationModes modes);
         Task<bool> ShowOAuthRequiredPromptAsync();
-        Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri);
-        Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(string refreshToken);
+        Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(InputArguments input);
+        Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(InputArguments input, string refreshToken);
+        string GetRefreshTokenServiceName(InputArguments input);
     }
 
     public class CredentialsPromptResult
@@ -50,17 +52,20 @@ namespace Atlassian.Bitbucket
     {
         public static readonly string[] AuthorityIds =
         {
-            "bitbucket",
+            BitbucketConstants.Id,
         };
 
-        private static readonly string[] Scopes =
-        {
-            BitbucketConstants.OAuthScopes.RepositoryWrite,
-            BitbucketConstants.OAuthScopes.Account,
-        };
+        private readonly IRegistry<AbstractBitbucketOAuth2Client> oauth2ClientRegistry;
 
         public BitbucketAuthentication(ICommandContext context)
-            : base(context) { }
+            : this(context, new OAuth2ClientRegistry(context)) { }
+
+        public BitbucketAuthentication(ICommandContext context, IRegistry<AbstractBitbucketOAuth2Client> oauth2ClientRegistry)
+    : base(context)
+        {
+            EnsureArgument.NotNull(oauth2ClientRegistry, nameof(oauth2ClientRegistry));
+            this.oauth2ClientRegistry = oauth2ClientRegistry;
+        }
 
         #region IBitbucketAuthentication
 
@@ -211,12 +216,8 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri)
+        public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(InputArguments input)
         {
-            ThrowIfUserInteractionDisabled();
-
-            var oauthClient = new BitbucketOAuth2Client(HttpClient, Context.Settings);
-
             var browserOptions = new OAuth2WebBrowserOptions
             {
                 SuccessResponseHtml = BitbucketResources.AuthenticationResponseSuccessHtml,
@@ -224,16 +225,19 @@ namespace Atlassian.Bitbucket
             };
 
             var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
-            var authCodeResult = await oauthClient.GetAuthorizationCodeAsync(Scopes, browser, CancellationToken.None);
+            var authCodeResult = await oauth2ClientRegistry.Get(input).GetAuthorizationCodeAsync(oauth2ClientRegistry.Get(input).Scopes, browser, CancellationToken.None);
 
-            return await oauthClient.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
+            return await oauth2ClientRegistry.Get(input).GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
         }
 
-        public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(string refreshToken)
+        public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(InputArguments input, string refreshToken)
         {
-            var oauthClient = new BitbucketOAuth2Client(HttpClient, Context.Settings);
+            return await oauth2ClientRegistry.Get(input).GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
+        }
 
-            return await oauthClient.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
+        public string GetRefreshTokenServiceName(InputArguments input)
+        {
+            return oauth2ClientRegistry.Get(input).GetRefreshTokenServiceName(input);
         }
 
         #endregion

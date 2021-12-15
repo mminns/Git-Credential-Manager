@@ -1,36 +1,14 @@
 using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using Newtonsoft.Json;
 
-namespace Atlassian.Bitbucket
+namespace Atlassian.Bitbucket.Cloud
 {
-    public interface IBitbucketRestApi : IDisposable
-    {
-        Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken);
-    }
 
-    public class RestApiResult<T>
-    {
-        public RestApiResult(HttpStatusCode statusCode)
-            : this(statusCode, default(T)) { }
-
-        public RestApiResult(HttpStatusCode statusCode, T response)
-        {
-            StatusCode = statusCode;
-            Response = response;
-        }
-
-        public HttpStatusCode StatusCode { get; }
-
-        public T Response { get; }
-
-        public bool Succeeded => 199 < (int) StatusCode && (int) StatusCode < 300;
-    }
-
-    public class UserInfo
+    public class UserInfo : IUserInfo
     {
         [JsonProperty("has_2fa_enabled")]
         public bool IsTwoFactorAuthenticationEnabled { get; set; }
@@ -48,7 +26,7 @@ namespace Atlassian.Bitbucket
     public class BitbucketRestApi : IBitbucketRestApi
     {
         private readonly ICommandContext _context;
-        private readonly Uri _apiUri = BitbucketConstants.BitbucketApiUri;
+        private readonly Uri _apiUri = CloudConstants.BitbucketApiUri;
 
         public BitbucketRestApi(ICommandContext context)
         {
@@ -57,7 +35,7 @@ namespace Atlassian.Bitbucket
             _context = context;
         }
 
-        public async Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
+        public async Task<RestApiResult<IUserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
         {
             var requestUri = new Uri(_apiUri, "2.0/user");
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -82,12 +60,23 @@ namespace Atlassian.Bitbucket
                     {
                         var obj = JsonConvert.DeserializeObject<UserInfo>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-                        return new RestApiResult<UserInfo>(response.StatusCode, obj);
+                        return new RestApiResult<IUserInfo>(response.StatusCode, obj);
                     }
 
-                    return new RestApiResult<UserInfo>(response.StatusCode);
+                    return new RestApiResult<IUserInfo>(response.StatusCode);
                 }
             }
+        }
+
+        public async Task<bool> IsOAuthInstalledAsync()
+        {
+            return await Task.FromResult(true);
+        }
+
+        public async Task<List<AuthenticationMethod>> GetAuthenticationMethodsAsync()
+        {
+            // HACK NEVER USED
+            return await Task.FromResult(new List<AuthenticationMethod>());
         }
 
         private HttpClient _httpClient;

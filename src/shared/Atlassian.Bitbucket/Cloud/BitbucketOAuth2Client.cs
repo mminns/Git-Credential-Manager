@@ -1,22 +1,29 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Authentication.OAuth.Json;
 using Newtonsoft.Json;
 
-namespace Atlassian.Bitbucket
+namespace Atlassian.Bitbucket.Cloud
 {
-    public class BitbucketOAuth2Client : OAuth2Client
+    public class BitbucketOAuth2Client : AbstractBitbucketOAuth2Client
     {
-        private static readonly OAuth2ServerEndpoints Endpoints = new OAuth2ServerEndpoints(
-            BitbucketConstants.OAuth2AuthorizationEndpoint,
-            BitbucketConstants.OAuth2TokenEndpoint);
-
-        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings)
-            : base(httpClient, Endpoints,
-                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings))
+        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings, ITrace trace)
+            : base(httpClient, GetEndpoints(),
+                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings), trace)
         {
+        }
+
+        private static OAuth2ServerEndpoints GetEndpoints()
+        {
+            return new OAuth2ServerEndpoints(
+                CloudConstants.OAuth2AuthorizationEndpoint,
+                CloudConstants.OAuth2TokenEndpoint
+            );
         }
 
         private static string GetClientId(ISettings settings)
@@ -30,7 +37,7 @@ namespace Atlassian.Bitbucket
                 return clientId;
             }
 
-            return BitbucketConstants.OAuth2ClientId;
+            return CloudConstants.OAuth2ClientId;
         }
 
         private static Uri GetRedirectUri(ISettings settings)
@@ -44,7 +51,7 @@ namespace Atlassian.Bitbucket
                 return redirectUri;
             }
 
-            return BitbucketConstants.OAuth2RedirectUri;
+            return CloudConstants.OAuth2RedirectUri;
         }
 
         private static string GetClientSecret(ISettings settings)
@@ -58,8 +65,13 @@ namespace Atlassian.Bitbucket
                 return clientId;
             }
 
-            return BitbucketConstants.OAuth2ClientSecret;
+            return CloudConstants.OAuth2ClientSecret;
         }
+
+        public override IEnumerable<string> Scopes => new string[] {
+            CloudConstants.OAuthScopes.RepositoryWrite,
+            CloudConstants.OAuthScopes.Account,
+        };
 
         protected override bool TryCreateTokenEndpointResult(string json, out OAuth2TokenResult result)
         {
@@ -81,6 +93,17 @@ namespace Atlassian.Bitbucket
             // Bitbucket uses "scopes" for the scopes property name rather than the standard "scope" name
             [JsonProperty("scopes")]
             public override string Scope { get; set; }
+        }
+
+        public override string GetRefreshTokenServiceName(InputArguments input)
+        {
+            Uri baseUri = input.GetRemoteUri(includeUser: false);
+
+            // The refresh token key never includes the path component.
+            // Instead we use the path component to specify this is the "refresh_token".
+            Uri uri = new UriBuilder(baseUri) { Path = "/refresh_token" }.Uri;
+
+            return uri.AbsoluteUri.TrimEnd('/');
         }
     }
 }

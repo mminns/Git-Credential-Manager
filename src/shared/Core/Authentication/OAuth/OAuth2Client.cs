@@ -65,16 +65,18 @@ namespace GitCredentialManager.Authentication.OAuth
         private readonly Uri _redirectUri;
         private readonly string _clientId;
         private readonly string _clientSecret;
+        private readonly ITrace _trace;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
-        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null)
+        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null, ITrace trace = null)
         {
             _httpClient = httpClient;
             _endpoints = endpoints;
             _clientId = clientId;
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
+            _trace = trace;
         }
 
         public IOAuth2CodeGenerator CodeGenerator
@@ -82,6 +84,18 @@ namespace GitCredentialManager.Authentication.OAuth
             get => _codeGenerator ?? (_codeGenerator = new OAuth2CryptographicCodeGenerator());
             set => _codeGenerator = value;
         }
+
+        protected string ClientId => _clientId;
+
+        protected string ClientSecret => _clientSecret;
+
+        protected ITrace Trace => _trace;
+
+        protected OAuth2ServerEndpoints Endpoints => _endpoints;
+
+        protected HttpClient HttpClient => _httpClient;
+
+        protected Uri RedirectUri => _redirectUri;
 
         #region IOAuth2Client
 
@@ -181,7 +195,7 @@ namespace GitCredentialManager.Authentication.OAuth
             }
         }
 
-        public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
+        public virtual async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
             var formData = new Dictionary<string, string>
             {
@@ -216,7 +230,7 @@ namespace GitCredentialManager.Authentication.OAuth
             }
         }
 
-        public async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
+        public virtual async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
         {
             var formData = new Dictionary<string, string>
             {
@@ -332,7 +346,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         #region Helpers
 
-        private HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null, bool addAuthHeader = false)
+        protected HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null, bool addAuthHeader = false)
         {
             var request = new HttpRequestMessage(method, requestUri) {Content = content};
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
@@ -345,7 +359,7 @@ namespace GitCredentialManager.Authentication.OAuth
             return request;
         }
 
-        private Exception CreateExceptionFromResponse(string json)
+        protected Exception CreateExceptionFromResponse(string json)
         {
             if (TryCreateExceptionFromResponse(json, out OAuth2Exception exception))
             {
