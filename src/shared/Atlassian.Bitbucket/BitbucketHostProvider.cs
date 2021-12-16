@@ -77,20 +77,18 @@ namespace Atlassian.Bitbucket
         {
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http")
-                && BitbucketHelper.IsBitbucketOrg(targetUri))
+                && BitbucketHelper.IsBitbucketOrg(input))
             {
                 throw new Exception("Unencrypted HTTP is not supported for Bitbucket.org. Ensure the repository remote URL is using HTTPS.");
             }
 
-            Uri remoteUri = input.GetRemoteUri();
+            var authModes = await GetSupportedAuthenticationModesAsync(input);
 
-            AuthenticationModes authModes = GetSupportedAuthenticationModes(remoteUri);
-
-            return await GetStoredCredentials(remoteUri, input.UserName, authModes) ??
-                   await GetRefreshedCredentials(remoteUri, input.UserName, authModes);
+            return await GetStoredCredentials(input, authModes) ??
+                   await GetRefreshedCredentials(input, authModes);
         }
 
-        private async Task<ICredential> GetStoredCredentials(Uri remoteUri, string userName, AuthenticationModes authModes)
+        private async Task<ICredential> GetStoredCredentials(InputArguments input, AuthenticationModes authModes)
         {
             if (_context.Settings.TryGetSetting(BitbucketConstants.EnvironmentVariables.AlwaysRefreshCredentials,
                 Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.AlwaysRefreshCredentials,
@@ -100,10 +98,11 @@ namespace Atlassian.Bitbucket
                 return null;
             }
 
+            Uri remoteUri = input.GetRemoteUri();
             string credentialService = GetServiceName(remoteUri);
             _context.Trace.WriteLine($"Look for existing credentials under {credentialService} ...");
 
-            ICredential credentials = _context.CredentialStore.Get(credentialService, userName);
+            ICredential credentials = _context.CredentialStore.Get(credentialService, input.UserName);
 
             if (credentials == null)
             {
@@ -114,7 +113,7 @@ namespace Atlassian.Bitbucket
             _context.Trace.WriteLineSecrets($"Found stored credentials: {credentials.Account}/{{0}}", new object[] { credentials.Password });
 
             // Check credentials are still valid
-            if (!await ValidateCredentialsWork(input, credentials, await GetSupportedAuthenticationModesAsync(input)))
+            if (!await ValidateCredentialsWork(input, credentials, authModes))
             {
                 return null;
             }
@@ -122,17 +121,17 @@ namespace Atlassian.Bitbucket
             return credentials;
         }
 
-        private async Task<ICredential> GetRefreshedCredentials(Uri remoteUri, string userName, AuthenticationModes authModes)
+        private async Task<ICredential> GetRefreshedCredentials(InputArguments input, AuthenticationModes authModes)
         {
             _context.Trace.WriteLine("Refresh credentials...");
 
             // Check for presence of refresh_token entry in credential store
+            Uri remoteUri = input.GetRemoteUri();
             var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
 
-            AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(input);
             _context.Trace.WriteLine("Checking for refresh token...");
             ICredential refreshToken = SupportsOAuth(authModes)
-                ? _context.CredentialStore.Get(refreshTokenService, userName)
+                ? _context.CredentialStore.Get(refreshTokenService, input.UserName)
                 : null;
 
             if (refreshToken is null)
@@ -149,7 +148,7 @@ namespace Atlassian.Bitbucket
 
                     // We don't have any credentials to use at all! Start with the assumption of no 2FA requirement
                     // and capture username and password via an interactive prompt.
-                    var result = await _bitbucketAuth.GetCredentialsAsync(remoteUri, userName, authModes);
+                    var result = await _bitbucketAuth.GetCredentialsAsync(remoteUri, input.UserName, authModes);
                     if (result is null || result.AuthenticationMode == AuthenticationModes.None)
                     {
                         _context.Trace.WriteLine("User cancelled credential prompt");
@@ -168,7 +167,7 @@ namespace Atlassian.Bitbucket
                             // We need to check if these user/pass credentials require 2FA
                             _context.Trace.WriteLine("Checking if two-factor requirements for credentials...");
 
-                            bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(result.Credential);
+                            bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(input, result.Credential, authModes);
                             if (!requires2Fa)
                             {
                                 _context.Trace.WriteLine("Two-factor authentication not required");
@@ -210,7 +209,7 @@ namespace Atlassian.Bitbucket
 
                 try
                 {
-                    return await GetOAuthCredentialsViaRefreshFlow(remoteUri, refreshToken);
+                    return await GetOAuthCredentialsViaRefreshFlow(input, refreshToken);
                 }
                 catch (OAuth2Exception ex)
                 {
@@ -222,11 +221,13 @@ namespace Atlassian.Bitbucket
                 }
             }
 
-            return await GetOAuthCredentialsViaInteractiveBrowserFlow(remoteUri);
+            return await GetOAuthCredentialsViaInteractiveBrowserFlow(input);
         }
 
-        private async Task<ICredential> GetOAuthCredentialsViaRefreshFlow(Uri remoteUri, ICredential refreshToken)
+        private async Task<ICredential> GetOAuthCredentialsViaRefreshFlow(InputArguments input, ICredential refreshToken)
         {
+            Uri remoteUri = input.GetRemoteUri();
+
             var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
             _context.Trace.WriteLine("Refreshing OAuth credentials using refresh token...");
 
@@ -245,8 +246,10 @@ namespace Atlassian.Bitbucket
             return new GitCredential(refreshUserName, refreshResult.AccessToken);
         }
 
-        private async Task<ICredential> GetOAuthCredentialsViaInteractiveBrowserFlow(Uri remoteUri)
+        private async Task<ICredential> GetOAuthCredentialsViaInteractiveBrowserFlow(InputArguments input)
         {
+            Uri remoteUri = input.GetRemoteUri();
+
             var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
 
             // We failed to use the refresh token either because it didn't exist, or because the refresh token is no
@@ -430,7 +433,7 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        private async Task<bool> ValidateCredentialsWork(Uri remoteUri, ICredential credentials, AuthenticationModes authModes)
+        private async Task<bool> ValidateCredentialsWork(InputArguments input, ICredential credentials, AuthenticationModes authModes)
         {
             if (credentials is null)
             {
@@ -440,17 +443,8 @@ namespace Atlassian.Bitbucket
             // TODO: ideally we'd also check if the credentials have expired based on some local metadata
             // (once/if we get such metadata storage), and return false if they have.
             // This would be more efficient than having to make REST API calls to check.
-
+            Uri remoteUri = input.GetRemoteUri();
             _context.Trace.WriteLineSecrets($"Validate credentials ({credentials.Account}/{{0}}) are fresh for {remoteUri} ...", new object[] { credentials.Password });
-
-            if (!BitbucketHelper.IsBitbucketOrg(targetUri))
-            {
-                // TODO: Validate DC/Server credentials before returning them to Git
-                // Currently credentials for DC/Server are not checked by GCM.
-                // Instead the validation relies on Git to try and fail with the credentials and then request GCM to erase them
-                _context.Trace.WriteLine("For DC/Server skip validating existing credentials");
-                return await Task.FromResult(true);
-            }
 
             // Bitbucket supports both OAuth + Basic Auth unless there is explicit GCM configuration.
             // The credentials could be for either scheme therefore need to potentially test both possibilities.
@@ -462,7 +456,7 @@ namespace Atlassian.Bitbucket
                     _context.Trace.WriteLine("Validated existing credentials using OAuth");
                     return true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     _context.Trace.WriteLine("Failed to validate existing credentials using OAuth");
                 }
@@ -476,7 +470,7 @@ namespace Atlassian.Bitbucket
                     _context.Trace.WriteLine("Validated existing credentials using BasicAuth");
                     return true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     _context.Trace.WriteLine("Failed to validate existing credentials using Basic Auth");
                     return false;
