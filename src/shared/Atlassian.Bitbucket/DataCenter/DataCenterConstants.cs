@@ -17,5 +17,20 @@ namespace Atlassian.Bitbucket.DataCenter
         /// Supported authentication modes for Bitbucket Server/DC
         /// </summary>
         public const AuthenticationModes ServerAuthenticationModes = AuthenticationModes.Basic  | AuthenticationModes.OAuth;
+
+        public static class EnvironmentVariables
+        {
+            public const string OAuthClientId = "GCM_BITBUCKET_DATACENTER_CLIENTID";
+            public const string OAuthClientSecret = "GCM_BITBUCKET_DATACENTER_CLIENTSECRET";
+        }
+
+        public static class GitConfiguration
+        {
+            public static class Credential
+            {
+                public const string OAuthClientId = "bitbucketDataCenterOauthClientId";
+                public const string OAuthClientSecret = "bitbucketDataCenterOauthClientSecret";
+            }
+        }
     }
 }

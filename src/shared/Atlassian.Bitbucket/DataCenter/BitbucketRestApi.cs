@@ -26,7 +26,7 @@ namespace Atlassian.Bitbucket.DataCenter
         {
             // TODO SHPLII-74 HACKY
             // No REST API in BBS that can be used to return just my user account based on my login AFAIK.
-            return await Task.Run(() => new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = string.Empty }));
+            return await Task.Run(() => new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = String.Empty }));
         }
 
         private HttpClient _httpClient;

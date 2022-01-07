@@ -123,8 +123,8 @@ namespace Atlassian.Bitbucket.Tests.Cloud
         private string MockClientIdOverride(bool set, string value)
         {
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
+                CloudConstants.EnvironmentVariables.OAuthClientId,
+                Constants.GitConfiguration.Credential.SectionName, CloudConstants.GitConfiguration.Credential.OAuthClientId,
                 out value)).Returns(set);
             return value;
         }

@@ -118,8 +118,8 @@ namespace Atlassian.Bitbucket.DataCenter
         {
             // Check for developer override value
             if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
+                DataCenterConstants.EnvironmentVariables.OAuthClientId,
+                Constants.GitConfiguration.Credential.SectionName, DataCenterConstants.GitConfiguration.Credential.OAuthClientId,
                 out string clientId))
             {
                 return clientId;
@@ -132,8 +132,8 @@ namespace Atlassian.Bitbucket.DataCenter
         {
             // Check for developer override value
             if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
+                BitbucketConstants.EnvironmentVariables.OAuthRedirectUri,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.OAuthRedirectUri,
                 out string redirectUriStr) && Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
             {
                 return redirectUri;
@@ -146,8 +146,8 @@ namespace Atlassian.Bitbucket.DataCenter
         {
             // Check for developer override value
             if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
+                DataCenterConstants.EnvironmentVariables.OAuthClientSecret,
+                Constants.GitConfiguration.Credential.SectionName, DataCenterConstants.GitConfiguration.Credential.OAuthClientSecret,
                 out string clientSecret))
             {
                 return clientSecret;

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using Atlassian.Bitbucket.Cloud;
+using Atlassian.Bitbucket.DataCenter;
 using GitCredentialManager;
 using Moq;
 using Xunit;
@@ -22,18 +24,18 @@ namespace Atlassian.Bitbucket.Tests
             context.Setup(c => c.Settings).Returns(settings.Object);   
             var clientId = "never used";
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
+                CloudConstants.EnvironmentVariables.OAuthClientId,
+                Constants.GitConfiguration.Credential.SectionName, CloudConstants.GitConfiguration.Credential.OAuthClientId,
                 out clientId)).Returns(false);
             var clientSecret = "never used";
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
+                CloudConstants.EnvironmentVariables.OAuthClientSecret,
+                Constants.GitConfiguration.Credential.SectionName, CloudConstants.GitConfiguration.Credential.OAuthClientSecret,
                 out clientSecret)).Returns(false);
             var redirectUrl = "never used";
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
+                BitbucketConstants.EnvironmentVariables.OAuthRedirectUri,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.OAuthRedirectUri,
                 out redirectUrl)).Returns(false); 
             context.Setup(c => c.HttpClientFactory).Returns(httpClientFactory.Object);
             httpClientFactory.Setup(f => f.CreateClient()).Returns(new HttpClient());
@@ -64,18 +66,18 @@ namespace Atlassian.Bitbucket.Tests
 
             var clientId = "";
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
+                DataCenterConstants.EnvironmentVariables.OAuthClientId,
+                Constants.GitConfiguration.Credential.SectionName, DataCenterConstants.GitConfiguration.Credential.OAuthClientId,
                 out clientId)).Returns(true);
             var clientSecret = "";
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
+                DataCenterConstants.EnvironmentVariables.OAuthClientSecret,
+                Constants.GitConfiguration.Credential.SectionName, DataCenterConstants.GitConfiguration.Credential.OAuthClientSecret,
                 out clientSecret)).Returns(true);
             var redirectUrl = "never used";
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
+                BitbucketConstants.EnvironmentVariables.OAuthRedirectUri,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.OAuthRedirectUri,
                 out redirectUrl)).Returns(false);
 
 

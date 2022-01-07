@@ -123,8 +123,8 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
         private string MockClientIdOverride(string value)
         {
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
+                DataCenterConstants.EnvironmentVariables.OAuthClientId,
+                Constants.GitConfiguration.Credential.SectionName, DataCenterConstants.GitConfiguration.Credential.OAuthClientId,
                 out value)).Returns(true);
             return value;
         }
@@ -132,8 +132,8 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
         private string MockClientSecretOverride(string value)
         {
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
+                DataCenterConstants.EnvironmentVariables.OAuthClientSecret,
+                Constants.GitConfiguration.Credential.SectionName, DataCenterConstants.GitConfiguration.Credential.OAuthClientSecret,
                 out value)).Returns(true);
             return value;
         }
@@ -141,8 +141,8 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
         private string MockRootCallbackUriOverride(string value)
         {
             settings.Setup(s => s.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
+                BitbucketConstants.EnvironmentVariables.OAuthRedirectUri,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.OAuthRedirectUri,
                 out value)).Returns(true);
             return value;
         }

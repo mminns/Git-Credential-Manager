@@ -30,8 +30,8 @@ namespace Atlassian.Bitbucket.Cloud
         {
             // Check for developer override value
             if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
+                CloudConstants.EnvironmentVariables.OAuthClientId,
+                Constants.GitConfiguration.Credential.SectionName, CloudConstants.GitConfiguration.Credential.OAuthClientId,
                 out string clientId))
             {
                 return clientId;
@@ -44,8 +44,8 @@ namespace Atlassian.Bitbucket.Cloud
         {
             // Check for developer override value
             if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
+                BitbucketConstants.EnvironmentVariables.OAuthRedirectUri,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.OAuthRedirectUri,
                 out string redirectUriStr) && Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
             {
                 return redirectUri;
@@ -58,8 +58,8 @@ namespace Atlassian.Bitbucket.Cloud
         {
             // Check for developer override value
             if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
+                CloudConstants.EnvironmentVariables.OAuthClientSecret,
+                Constants.GitConfiguration.Credential.SectionName, CloudConstants.GitConfiguration.Credential.OAuthClientSecret,
                 out string clientId))
             {
                 return clientId;

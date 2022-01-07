@@ -29,5 +29,20 @@ namespace Atlassian.Bitbucket.Cloud
         /// Supported authentication modes for Bitbucket.org
         /// </summary>
         public const AuthenticationModes DotOrgAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
+
+        public static class EnvironmentVariables
+        {
+            public const string OAuthClientId = "GCM_BITBUCKET_CLOUD_CLIENTID";
+            public const string OAuthClientSecret = "GCM_BITBUCKET_CLOUD_CLIENTSECRET";
+        }
+
+        public static class GitConfiguration
+        {
+            public static class Credential
+            {
+                public const string OAuthClientId = "cloudOauthClientId";
+                public const string OAuthClientSecret = "cloudOauthClientSecret";
+            }
+        }
     }
 }
