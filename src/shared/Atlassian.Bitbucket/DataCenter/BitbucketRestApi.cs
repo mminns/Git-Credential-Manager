@@ -9,36 +9,6 @@ using Newtonsoft.Json;
 
 namespace Atlassian.Bitbucket.DataCenter
 {
-    public class UserInfo : IUserInfo
-    {
-        [JsonProperty("has_2fa_enabled")]
-        public bool IsTwoFactorAuthenticationEnabled { get; set; }
-
-        [JsonProperty("username")]
-        public string UserName { get; set; }
-
-        [JsonProperty("account_id")]
-        public string AccountId { get; set; }
-
-        [JsonProperty("uuid")]
-        public Guid Uuid { get; set; }
-    }
-
-    public class LoginOptions
-    {
-        [JsonProperty("results")]
-        public List<LoginOption> Results { get; set; }
-    }
-
-    public class LoginOption
-    {
-        [JsonProperty("type")]
-        public string Type { get ; set; }
-
-        [JsonProperty("id")]
-        public int Id { get; set; }
-    }
-
     public class BitbucketRestApi : IBitbucketRestApi
     {
         private readonly ICommandContext _context;
@@ -56,7 +26,7 @@ namespace Atlassian.Bitbucket.DataCenter
         {
             // TODO SHPLII-74 HACKY
             // No REST API in BBS that can be used to return just my user account based on my login AFAIK.
-            return await Task.Run(() => new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = "   " }));
+            return await Task.Run(() => new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = string.Empty }));
         }
 
         private HttpClient _httpClient;

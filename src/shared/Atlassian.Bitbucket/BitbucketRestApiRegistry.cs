@@ -16,19 +16,21 @@ namespace Atlassian.Bitbucket
 
         public IBitbucketRestApi Get(InputArguments input)
         {
+            // TODO why do we need both ICommandContext and InputArguments ?
+            // is context.Settings.GetRemoteUri() the same as input.GetRemoteUri()
             if(!BitbucketHelper.IsBitbucketOrg(input))
             {
-                return new DataCenter.BitbucketRestApi(context);
+                return DataCenterApi;
             }
 
-            return new Cloud.BitbucketRestApi(context);
+            return CloudApi;
         }
 
         public void Dispose()
         {
             context.Dispose();
-            cloudApi.Dispose();
-            dataCenterApi.Dispose();
+            cloudApi?.Dispose();
+            dataCenterApi?.Dispose();
         }
 
         private Cloud.BitbucketRestApi CloudApi => cloudApi ??= new Cloud.BitbucketRestApi(context);

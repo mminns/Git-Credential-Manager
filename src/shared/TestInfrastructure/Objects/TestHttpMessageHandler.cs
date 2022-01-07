@@ -24,6 +24,8 @@ namespace GitCredentialManager.Tests.Objects
         public bool ThrowOnUnexpectedRequest { get; set; }
         public bool SimulateNoNetwork { get; set; }
 
+        public IDictionary<(HttpMethod method, Uri uri), int> RequestCounts => _requestCounts;
+
         public void Setup(HttpMethod method, Uri uri, AsyncRequestHandler handler)
         {
             _handlers[CreateRequestKey(method, uri)] = handler;
@@ -58,6 +60,11 @@ namespace GitCredentialManager.Tests.Objects
             }
 
             Assert.Equal(expectedNumberOfCalls, numCalls);
+        }
+
+        public void AssertNoRequests()
+        {
+            Assert.Equal(0, _requestCounts.Count);
         }
 
         #region HttpMessageHandler

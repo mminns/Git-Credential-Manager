@@ -20,85 +20,11 @@ namespace Atlassian.Bitbucket.DataCenter
         {
         }
 
-        private static OAuth2ServerEndpoints GetEndpoints(ISettings settings)
-        {
-            return new OAuth2ServerEndpoints(
-                new Uri(GetBaseUri(settings) + "/rest/oauth2/latest/authorize"),
-                new Uri(GetBaseUri(settings) + "/rest/oauth2/latest/token")
-                );
-        }
-
-        private static string GetBaseUri(ISettings settings)
-        {
-            // TODO SHPLII-74 HACKY
-            var pathParts = settings.RemoteUri.PathAndQuery.Split('/');
-            var pathPart = settings.RemoteUri.PathAndQuery.StartsWith("/") ? pathParts[1] : pathParts[0];
-            var path = !string.IsNullOrWhiteSpace(pathPart) ? "/" + pathPart : null;
-            return $"{settings.RemoteUri.Scheme}://{settings.RemoteUri.Host}:{settings.RemoteUri.Port}{path}";
-        }
-
-        private static string GetClientId(ISettings settings)
-        {
-            // Check for developer override value
-            if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
-                out string clientId))
-            {
-                return clientId;
-            }
-
-            throw new ArgumentException("Bitbucket DC OAuth Client ID must be defined");
-        }
-
-        private static Uri GetRedirectUri(ISettings settings)
-        {
-            // Check for developer override value
-            if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
-                out string redirectUriStr) && Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
-            {
-                return redirectUri;
-            }
-
-            throw new ArgumentException("Bitbucket DC OAuth Redirect Uri must be defined");
-        }
-
-        private static string GetClientSecret(ISettings settings)
-        {
-            // Check for developer override value
-            if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
-                out string clientId))
-            {
-                return clientId;
-            }
-
-            throw new ArgumentException("Bitbucket DC OAuth Client Secret must be defined");
-        }
-
         public override IEnumerable<string> Scopes => new string[] {
             DataCenterConstants.OAuthScopes.PublicRepos,
             DataCenterConstants.OAuthScopes.RepoRead,
             DataCenterConstants.OAuthScopes.RepoWrite
         };
-
-        protected override bool TryCreateTokenEndpointResult(string json, out OAuth2TokenResult result)
-        {
-            // We override the token endpoint response parsing because the Bitbucket authority returns
-            // the non-standard 'scopes' property for the list of scopes, rather than the (optional)
-            // 'scope' (note the singular vs plural) property as outlined in the standard.
-            if (TryDeserializeJson(json, out BitbucketTokenEndpointResponseJson jsonObj))
-            {
-                result = jsonObj.ToResult();
-                return true;
-            }
-
-            result = null;
-            return false;
-        }
 
         public override string GetRefreshTokenServiceName(InputArguments input)
         {
@@ -109,13 +35,6 @@ namespace Atlassian.Bitbucket.DataCenter
             Uri uri = new UriBuilder(baseUri) { Path = "/refresh_token" }.Uri;
 
             return uri.AbsoluteUri.TrimEnd('/');
-        }
-
-        private class BitbucketTokenEndpointResponseJson : TokenEndpointResponseJson
-        {
-            // Bitbucket uses "scopes" for the scopes property name rather than the standard "scope" name
-            [JsonProperty("scopes")]
-            public override string Scope { get; set; }
         }
 
         public override async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
@@ -185,6 +104,78 @@ namespace Atlassian.Bitbucket.DataCenter
 
                 throw CreateExceptionFromResponse(json);
             }
+        }
+
+        private static OAuth2ServerEndpoints GetEndpoints(ISettings settings)
+        {
+            return new OAuth2ServerEndpoints(
+                new Uri(BitbucketHelper.GetBaseUri(settings) + "/rest/oauth2/latest/authorize"),
+                new Uri(BitbucketHelper.GetBaseUri(settings) + "/rest/oauth2/latest/token")
+                );
+        }
+
+        private static string GetClientId(ISettings settings)
+        {
+            // Check for developer override value
+            if (settings.TryGetSetting(
+                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
+                out string clientId))
+            {
+                return clientId;
+            }
+
+            throw new ArgumentException("Bitbucket DC OAuth Client ID must be defined");
+        }
+
+        private static Uri GetRedirectUri(ISettings settings)
+        {
+            // Check for developer override value
+            if (settings.TryGetSetting(
+                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
+                out string redirectUriStr) && Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
+            {
+                return redirectUri;
+            }
+
+            return DataCenterConstants.OAuth2RedirectUri;
+        }
+
+        private static string GetClientSecret(ISettings settings)
+        {
+            // Check for developer override value
+            if (settings.TryGetSetting(
+                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
+                out string clientSecret))
+            {
+                return clientSecret;
+            }
+
+            throw new ArgumentException("Bitbucket DC OAuth Client Secret must be defined");
+        }
+
+        protected override bool TryCreateTokenEndpointResult(string json, out OAuth2TokenResult result)
+        {
+            // We override the token endpoint response parsing because the Bitbucket authority returns
+            // the non-standard 'scopes' property for the list of scopes, rather than the (optional)
+            // 'scope' (note the singular vs plural) property as outlined in the standard.
+            if (TryDeserializeJson(json, out BitbucketTokenEndpointResponseJson jsonObj))
+            {
+                result = jsonObj.ToResult();
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
+        private class BitbucketTokenEndpointResponseJson : TokenEndpointResponseJson
+        {
+            // Bitbucket uses "scopes" for the scopes property name rather than the standard "scope" name
+            [JsonProperty("scopes")]
+            public override string Scope { get; set; }
         }
     }
 }

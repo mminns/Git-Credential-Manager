@@ -72,18 +72,6 @@ namespace Atlassian.Bitbucket.Tests.Cloud
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.GetDeviceCodeAsync(scopes, ct));
         }
 
-        private void VerifyOAuth2TokenResult(OAuth2TokenResult result)
-        {
-            Assert.NotNull(result);
-            IEnumerable<char> access_token = null;
-            Assert.Equal(access_token, result.AccessToken);
-            IEnumerable<char> refresh_token = null;
-            Assert.Equal(refresh_token, result.RefreshToken);
-            IEnumerable<char> tokenType = null;
-            Assert.Equal(tokenType, result.TokenType);
-            Assert.Null(result.Scopes);
-        }
-
         private void VerifyAuthorizationCodeResult(OAuth2AuthorizationCodeResult result)
         {
             Assert.NotNull(result);
