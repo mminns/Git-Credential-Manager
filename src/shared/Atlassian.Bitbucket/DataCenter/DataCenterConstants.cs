@@ -18,6 +18,13 @@ namespace Atlassian.Bitbucket.DataCenter
         /// </summary>
         public const AuthenticationModes ServerAuthenticationModes = AuthenticationModes.Basic  | AuthenticationModes.OAuth;
 
+        /// <summary>
+        /// Bitbucket Server/DC does not have a REST API we can use to trade an OAuth access_token for the owning username.
+        /// However one is needed to construct the Bsic Auth request made by Git HTTP requests, therefore use a hardcoded
+        /// placeholder for the usernme.
+        /// </summary>
+        public const string OauthUserName = "OAUTH_USERNAME";
+
         public static class EnvironmentVariables
         {
             public const string OAuthClientId = "GCM_BITBUCKET_DATACENTER_CLIENTID";

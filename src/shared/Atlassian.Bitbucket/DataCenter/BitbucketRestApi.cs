@@ -24,9 +24,49 @@ namespace Atlassian.Bitbucket.DataCenter
 
         public async Task<RestApiResult<IUserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
         {
-            // TODO SHPLII-74 HACKY
-            // No REST API in BBS that can be used to return just my user account based on my login AFAIK.
-            return await Task.Run(() => new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = String.Empty }));
+            if (_context.Settings.TryGetSetting(
+                BitbucketConstants.EnvironmentVariables.ValidateStoredCredentials,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.ValidateStoredCredentials,
+                out string validateStoredCredentials) && !validateStoredCredentials.ToBooleanyOrDefault(true))
+            {
+                _context.Trace.WriteLine($"Skipping retreival of user information due to {BitbucketConstants.GitConfiguration.Credential.ValidateStoredCredentials} = {validateStoredCredentials}");
+                return new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = DataCenterConstants.OauthUserName });;
+            }
+
+            // Bitbucket Server/DC doesn't actually provide a REST API we can use to trade an access_token for the owning username,
+            // therefore this is always going to return a placeholder username, however this call does provide a way to valdiation the 
+            // credentials we do have
+            var requestUri = new Uri(_apiUri, "api/1.0/users");
+            using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                if (isBearerToken)
+                {
+                    request.AddBearerAuthenticationHeader(password);
+                }
+                else
+                {
+                    request.AddBasicAuthenticationHeader(userName, password);
+                }
+
+                _context.Trace.WriteLine($"HTTP: GET {requestUri}");
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request))
+                {
+                    _context.Trace.WriteLine($"HTTP: Response {(int) response.StatusCode} [{response.StatusCode}]");
+
+                    string json = await response.Content.ReadAsStringAsync();
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // TODO SHPLII-74 HACKY
+                        // No REST API in BBS that can be used to return just my user account based on my login AFAIK.
+                        // but we can prove the credentials work.
+                        return new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = DataCenterConstants.OauthUserName });
+                    }
+
+                    return new RestApiResult<IUserInfo>(response.StatusCode);
+                }
+            }
+
         }
 
         private HttpClient _httpClient;

@@ -435,6 +435,15 @@ namespace Atlassian.Bitbucket
 
         private async Task<bool> ValidateCredentialsWork(InputArguments input, ICredential credentials, AuthenticationModes authModes)
         {
+            if (_context.Settings.TryGetSetting(
+                BitbucketConstants.EnvironmentVariables.ValidateStoredCredentials,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.ValidateStoredCredentials,
+                out string validateStoredCredentials) && !validateStoredCredentials.ToBooleanyOrDefault(true))
+            {
+                _context.Trace.WriteLine($"Skipping validation of stored credentials due to {BitbucketConstants.GitConfiguration.Credential.ValidateStoredCredentials} = {validateStoredCredentials}");
+                return true;
+            }
+
             if (credentials is null)
             {
                 return false;

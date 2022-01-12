@@ -245,6 +245,31 @@ Defaults to false/disabled.
 
 ---
 
+### credential.bitbucketValidateStoredCredentials
+
+Forces GCM validate any stored credentials before returning them to Git. It does this by calling a REST API resource that requires authentication.
+
+Disabling this option reduces the HTTP traffic within GCM when it is retrieving credentials. This may improve user performance, but will increase the number of times Git remote calls fail to authenticate with the host and therefore require the user to re-try the Git remotye call.
+
+Enabling this option improves the resiliance, ensure Git is provided with valid credentials.
+
+Value|Validate stored credentials Before Returning
+-|-
+`true`, `1`, `yes`, `on`_(default)_|Always
+`false`, `0`, `no`, `off`|Never
+
+#### Example
+
+```shell
+git config --global credential.bitbucketValidateStoredCredentials 1
+```
+
+Defaults to true/enabled.
+
+**Also see: [GCM_GITBUCKET_VALIDATE_STORED_CREDENTIALS](environment.md#GCM_GITBUCKET_VALIDATE_STORED_CREDENTIALS)**
+
+---
+
 ### credential.gitHubAuthModes
 
 Override the available authentication modes presented during GitHub authentication.

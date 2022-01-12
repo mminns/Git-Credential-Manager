@@ -65,6 +65,9 @@ namespace Atlassian.Bitbucket.DataCenter
             using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, Endpoints.TokenEndpoint, requestContent, false))
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, ct))
             {
+                Trace.WriteLine($"HTTP: POST {Endpoints.TokenEndpoint}");
+                Trace.WriteLine($"HTTP: Response {(int) response.StatusCode} [{response.StatusCode}]");
+
                 string json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
