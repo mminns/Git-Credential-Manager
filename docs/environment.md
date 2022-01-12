@@ -402,7 +402,7 @@ export GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS=1
 
 Defaults to false/disabled.
 
-**Also see: [credential.bitbucketAlwaysRefreshCredentials](configuration.md#bitbucketAlwaysRefreshCredentials)**
+**Also see: [credential.bitbucketAlwaysRefreshCredentials](configuration.md#credential.bitbucketAlwaysRefreshCredentials)**
 
 ---
 
@@ -433,7 +433,55 @@ export GCM_GITBUCKET_VALIDATE_STORED_CREDENTIALS=1
 
 Defaults to true/enabled.
 
-**Also see: [credential.bitbucketValidateStoredCredentials](configuration.md#bitbucketValidateStoredCredentials)**
+**Also see: [credential.bitbucketValidateStoredCredentials](configuration.md#credential.bitbucketValidateStoredCredentials)**
+
+---
+
+### GCM_BITBUCKET_DATACENTER_CLIENTID
+
+To use OAuth with Bitbucket DC it is necessary to create an external, incoming AppLink [TODO Documentation Link](http://example.com).
+
+It is then necessary configure the local GCM installation with the OAuth [ClientId](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTID) and [ClientSecret](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTSECRET) from the AppLink.
+
+##### Windows
+
+```batch
+SET GCM_BITBUCKET_DATACENTER_CLIENTID=1111111111111111111
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_BITBUCKET_DATACENTER_CLIENTID=1111111111111111111
+```
+
+Defaults to undefined.
+
+**Also see: [credential.bitbucketDataCenterOauthClientId](configuration.md#bcredential.itbucketDataCenterOauthClientId)**
+
+---
+
+### GCM_BITBUCKET_DATACENTER_CLIENTSECRET
+
+To use OAuth with Bitbucket DC it is necessary to create an external, incoming AppLink [TODO Documentation Link](http://example.com).
+
+It is then necessary configure the local GCM installation with the OAuth [ClientId](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTID) and [ClientSecret](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTSECRET) from the AppLink.
+
+##### Windows
+
+```batch
+SET GCM_BITBUCKET_DATACENTER_CLIENTSECRET=222222222222222222222
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_BITBUCKET_DATACENTER_CLIENTSECRET=222222222222222222222
+```
+
+Defaults to undefined.
+
+**Also see: [credential.bitbucketDataCenterOauthClientSecret](configuration.md#credential.bitbucketDataCenterOauthClientSecret)**
 
 ---
 

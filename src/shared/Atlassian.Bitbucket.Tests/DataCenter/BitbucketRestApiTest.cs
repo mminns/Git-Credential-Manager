@@ -18,7 +18,13 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
 
             var context = new TestCommandContext();
 
+            var expectedRequestUri = new Uri("http://example.com/rest/api/1.0/users");
             var httpHandler = new TestHttpMessageHandler();
+            var httpResponse = new HttpResponseMessage(HttpStatusCode.OK);
+            httpHandler.Setup(HttpMethod.Get, expectedRequestUri, request =>
+            {
+                return httpResponse;
+            });
             context.HttpClientFactory.MessageHandler = httpHandler;
             
             context.Settings.RemoteUri = new Uri("http://example.com");
@@ -27,12 +33,12 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
             var result = await api.GetUserInformationAsync("never used", "never used", false);
 
             Assert.NotNull(result);
-            Assert.Equal(string.Empty, result.Response.UserName);
+            Assert.Equal(DataCenterConstants.OAuthUserName, result.Response.UserName);
             Assert.Equal(twoFactorAuthenticationEnabled, result.Response.IsTwoFactorAuthenticationEnabled);
             Assert.Null(((UserInfo)result.Response).AccountId);
             Assert.Equal(Guid.Empty, ((UserInfo)result.Response).Uuid);
 
-            httpHandler.AssertNoRequests();
+            httpHandler.AssertRequest(HttpMethod.Get, expectedRequestUri, 1);
         }
     
         [Fact]

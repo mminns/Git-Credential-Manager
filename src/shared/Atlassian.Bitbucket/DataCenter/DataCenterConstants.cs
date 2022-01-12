@@ -23,7 +23,7 @@ namespace Atlassian.Bitbucket.DataCenter
         /// However one is needed to construct the Bsic Auth request made by Git HTTP requests, therefore use a hardcoded
         /// placeholder for the usernme.
         /// </summary>
-        public const string OauthUserName = "OAUTH_USERNAME";
+        public const string OAuthUserName = "OAUTH_USERNAME";
 
         public static class EnvironmentVariables
         {

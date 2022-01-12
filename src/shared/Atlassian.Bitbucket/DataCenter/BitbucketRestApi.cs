@@ -30,7 +30,7 @@ namespace Atlassian.Bitbucket.DataCenter
                 out string validateStoredCredentials) && !validateStoredCredentials.ToBooleanyOrDefault(true))
             {
                 _context.Trace.WriteLine($"Skipping retreival of user information due to {BitbucketConstants.GitConfiguration.Credential.ValidateStoredCredentials} = {validateStoredCredentials}");
-                return new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = DataCenterConstants.OauthUserName });;
+                return new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = DataCenterConstants.OAuthUserName });;
             }
 
             // Bitbucket Server/DC doesn't actually provide a REST API we can use to trade an access_token for the owning username,
@@ -57,10 +57,9 @@ namespace Atlassian.Bitbucket.DataCenter
 
                     if (response.IsSuccessStatusCode)
                     {
-                        // TODO SHPLII-74 HACKY
                         // No REST API in BBS that can be used to return just my user account based on my login AFAIK.
                         // but we can prove the credentials work.
-                        return new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = DataCenterConstants.OauthUserName });
+                        return new RestApiResult<IUserInfo>(HttpStatusCode.OK, new UserInfo() { UserName = DataCenterConstants.OAuthUserName });
                     }
 
                     return new RestApiResult<IUserInfo>(response.StatusCode);

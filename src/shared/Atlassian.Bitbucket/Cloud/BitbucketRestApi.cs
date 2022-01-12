@@ -59,7 +59,7 @@ namespace Atlassian.Bitbucket.Cloud
 
         public async Task<List<AuthenticationMethod>> GetAuthenticationMethodsAsync()
         {
-            // HACK NEVER USED
+            // HACK: NEVER USED
             return await Task.FromResult(new List<AuthenticationMethod>());
         }
 

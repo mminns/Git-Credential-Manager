@@ -8,14 +8,14 @@ namespace Atlassian.Bitbucket
     {
         public static string GetBaseUri(ISettings settings)
         {
-            // TODO SHPLII-74 HACKY
+            // TODO Can this be improved?
             var pathParts = settings.RemoteUri.PathAndQuery.Split('/');
             var pathPart = settings.RemoteUri.PathAndQuery.StartsWith("/") ? pathParts[1] : pathParts[0];
             var path = !string.IsNullOrWhiteSpace(pathPart) ? "/" + pathPart : null;
             return $"{settings.RemoteUri.Scheme}://{settings.RemoteUri.Host}:{settings.RemoteUri.Port}{path}";
         }
 
-        public static bool IsBitbucketOrg(InputArguments input)
+        public static bool IsBitbucketOrg(InputArguments input)     
         {
             return IsBitbucketOrg(input.GetRemoteUri());
         }

@@ -270,6 +270,42 @@ Defaults to true/enabled.
 
 ---
 
+### credential.bitbucketDataCenterOauthClientId
+
+To use OAuth with Bitbucket DC it is necessary to create an external, incoming AppLink [TODO Documentation Link](http://example.com).
+
+It is then necessary configure the local GCM installation with both of the OAuth [ClientId](configuration.md#credential.bitbucketDataCenterOauthClientId) and [ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret) from the AppLink.
+
+#### Example
+
+```shell
+git config --global credential.bitbucketDataCenterOauthClientId 1111111111111111111
+```
+
+Defaults to undefined.
+
+**Also see: [GCM_BITBUCKET_DATACENTER_CLIENTID](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTID)**
+
+---
+
+### credential.bitbucketDataCenterOauthClientSecret
+
+To use OAuth with Bitbucket DC it is necessary to create an external, incoming AppLink [TODO Documentation Link](http://example.com).
+
+It is then necessary configure the local GCM installation with both of the OAuth [ClientId](configuration.md#credential.bitbucketDataCenterOauthClientId) and [ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret) from the AppLink.
+
+#### Example
+
+```shell
+git config --global credential.bitbucketDataCenterOauthClientSecret 222222222222222222222
+```
+
+Defaults to undefined.
+
+**Also see: [GCM_BITBUCKET_DATACENTER_CLIENTSECRET](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTSECRET)**
+
+---
+
 ### credential.gitHubAuthModes
 
 Override the available authentication modes presented during GitHub authentication.
